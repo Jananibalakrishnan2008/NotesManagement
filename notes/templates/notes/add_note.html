@@ -1,0 +1,94 @@
+{% extends 'notes/base.html' %}
+{% load static %}
+
+{% block title %}Add New Note | NotesFlow{% endblock %}
+
+{% block content %}
+<div class="form-page-container">
+    <div class="form-card">
+        <div class="form-header">
+            <h1 class="form-title">
+                <span>✍️</span>
+                <span>Create New Note</span>
+            </h1>
+            <p class="form-subtitle">Fill in the details below to add a new note to your workspace.</p>
+        </div>
+
+        <form method="POST" action="{% url 'add_note' %}" novalidate>
+            {% csrf_token %}
+
+            <!-- Title Field -->
+            <div class="form-group">
+                <label for="title" class="form-label">
+                    <span>Note Title <span style="color: var(--danger);">*</span></span>
+                    <span class="form-counter" id="title-counter">Max 200 chars</span>
+                </label>
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    class="form-input"
+                    placeholder="e.g., Biology Chapter 4 Summary, Sprint Review Notes..."
+                    value="{{ title|default:'' }}"
+                    maxlength="200"
+                    required
+                    autofocus
+                >
+            </div>
+
+            <!-- Category Field -->
+            <div class="form-group">
+                <label for="category" class="form-label">Category</label>
+                <select id="category" name="category" class="form-select">
+                    {% for cat in category_choices %}
+                    <option value="{{ cat }}" {% if category == cat %}selected{% elif not category and cat == 'Study' %}selected{% endif %}>
+                        {{ cat }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Content Field with Live Word & Char Count -->
+            <div class="form-group">
+                <label for="note-content-input" class="form-label">
+                    <span>Note Content <span style="color: var(--danger);">*</span></span>
+                    <span class="form-counter">
+                        <span id="word-count-badge">0 words</span> • <span id="char-count-badge">0 characters</span>
+                    </span>
+                </label>
+                <textarea
+                    id="note-content-input"
+                    name="content"
+                    class="form-textarea"
+                    placeholder="Write your note content here. Key concepts, code snippets, reminders, meeting minutes..."
+                    required
+                >{{ content|default:'' }}</textarea>
+            </div>
+
+            <!-- Favorite Toggle Checkbox -->
+            <div class="form-group">
+                <label class="form-checkbox-label">
+                    <input
+                        type="checkbox"
+                        name="is_favorite"
+                        class="form-checkbox"
+                        {% if is_favorite %}checked{% endif %}
+                    >
+                    <span>⭐ Mark this note as a Favorite</span>
+                </label>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <a href="{% url 'home' %}" class="btn btn-secondary">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <span>💾</span>
+                    <span>Save Note</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

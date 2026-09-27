@@ -1,0 +1,213 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{% block title %}Notes Management App{% endblock %}</title>
+
+    <!-- Meta SEO -->
+    <meta name="description" content="A modern, professional Notes Management web application to organize, search, filter, and track notes easily.">
+
+    <!-- CSS Stylesheet -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Django Messages Toasts -->
+    {% if messages %}
+    <div class="toast-container" id="toast-container">
+        {% for message in messages %}
+        <div class="toast toast-{{ message.tags|default:'info' }}">
+            <div class="toast-content">
+                <span>
+                    {% if message.tags == 'success' %}✓
+                    {% elif message.tags == 'error' %}✕
+                    {% elif message.tags == 'warning' %}⚠
+                    {% else %}ℹ{% endif %}
+                </span>
+                <span>{{ message }}</span>
+            </div>
+            <button class="toast-close-btn" aria-label="Close message">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand-section">
+                <button class="menu-toggle-btn" id="menu-toggle-btn" aria-label="Toggle navigation menu">
+                    ☰
+                </button>
+                <a href="{% url 'home' %}" class="brand-logo">
+                    <div class="logo-icon">📝</div>
+                    <div class="logo-text">
+                        <span class="brand-title">NotesFlow</span>
+                        <span class="brand-badge">Management App</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="header-actions">
+                <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Dark/Light Mode">
+                    <span id="theme-icon">🌙</span>
+                </button>
+
+                <a href="{% url 'add_note' %}" class="btn btn-primary">
+                    <span>+</span>
+                    <span>New Note</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- App Layout: Sidebar + Main Content -->
+    <div class="app-layout">
+        <!-- Sidebar Backdrop for Mobile -->
+        <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside class="app-sidebar" id="app-sidebar">
+            <div>
+                <div class="sidebar-section-title">Navigation</div>
+                <nav class="sidebar-nav">
+                    <a href="{% url 'home' %}" class="sidebar-link {% if not request.GET.category and not request.GET.favorite and request.resolver_match.url_name == 'home' %}active{% endif %}">
+                        <span class="sidebar-link-content">
+                            <span>🏠</span>
+                            <span>Dashboard</span>
+                        </span>
+                    </a>
+
+                    <a href="{% url 'home' %}?category=All" class="sidebar-link {% if request.GET.category == 'All' %}active{% endif %}">
+                        <span class="sidebar-link-content">
+                            <span>📋</span>
+                            <span>All Notes</span>
+                        </span>
+                        {% if total_notes %}
+                        <span class="sidebar-badge">{{ total_notes }}</span>
+                        {% endif %}
+                    </a>
+
+                    <a href="{% url 'home' %}?favorite=1" class="sidebar-link {% if request.GET.favorite == '1' %}active{% endif %}">
+                        <span class="sidebar-link-content">
+                            <span>⭐</span>
+                            <span>Favorites</span>
+                        </span>
+                        {% if favorites_count %}
+                        <span class="sidebar-badge">{{ favorites_count }}</span>
+                        {% endif %}
+                    </a>
+
+                    <a href="{% url 'add_note' %}" class="sidebar-link {% if request.resolver_match.url_name == 'add_note' %}active{% endif %}">
+                        <span class="sidebar-link-content">
+                            <span>✍️</span>
+                            <span>Add Note</span>
+                        </span>
+                    </a>
+                </nav>
+            </div>
+
+            <div>
+                <div class="sidebar-section-title">Categories</div>
+                <nav class="sidebar-nav">
+                    <a href="{% url 'home' %}?category=Study" class="sidebar-link {% if request.GET.category == 'Study' %}active{% endif %}">
+                        <span class="sidebar-link-content">
+                            <span class="category-dot dot-study"></span>
+                            <span>Study</span>
+                        </span>
+                        {% if study_count is not None %}
+                        <span class="sidebar-badge">{{ study_count }}</span>
+                        {% endif %}
+                    </a>
+
+                    <a href="{% url 'home' %}?category=Project" class="sidebar-link {% if request.GET.category == 'Project' %}active{% endif %}">
+                        <span class="sidebar-link-content">
+                            <span class="category-dot dot-project"></span>
+                            <span>Project</span>
+                        </span>
+                        {% if project_count is not None %}
+                        <span class="sidebar-badge">{{ project_count }}</span>
+                        {% endif %}
+                    </a>
+
+                    <a href="{% url 'home' %}?category=Personal" class="sidebar-link {% if request.GET.category == 'Personal' %}active{% endif %}">
+                        <span class="sidebar-link-content">
+                            <span class="category-dot dot-personal"></span>
+                            <span>Personal</span>
+                        </span>
+                        {% if personal_count is not None %}
+                        <span class="sidebar-badge">{{ personal_count }}</span>
+                        {% endif %}
+                    </a>
+
+                    <a href="{% url 'home' %}?category=Work" class="sidebar-link {% if request.GET.category == 'Work' %}active{% endif %}">
+                        <span class="sidebar-link-content">
+                            <span class="category-dot dot-work"></span>
+                            <span>Work</span>
+                        </span>
+                        {% if work_count is not None %}
+                        <span class="sidebar-badge">{{ work_count }}</span>
+                        {% endif %}
+                    </a>
+
+                    <a href="{% url 'home' %}?category=Other" class="sidebar-link {% if request.GET.category == 'Other' %}active{% endif %}">
+                        <span class="sidebar-link-content">
+                            <span class="category-dot dot-other"></span>
+                            <span>Other</span>
+                        </span>
+                        {% if other_count is not None %}
+                        <span class="sidebar-badge">{{ other_count }}</span>
+                        {% endif %}
+                    </a>
+                </nav>
+            </div>
+
+            {% if recent_notes %}
+            <div class="sidebar-widget">
+                <div class="sidebar-widget-title">
+                    <span>🕒</span>
+                    <span>Recent Notes</span>
+                </div>
+                <ul class="sidebar-recent-list">
+                    {% for r_note in recent_notes %}
+                    <li class="sidebar-recent-item">
+                        <a href="{% url 'view_note' r_note.id %}" title="{{ r_note.title }}">
+                            • {{ r_note.title|truncatechars:24 }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- App Footer -->
+    <footer class="app-footer">
+        <div class="footer-container">
+            <p>&copy; 2026 <strong>NotesFlow</strong> - Notes Management System. Built with Django & Modern UI.</p>
+            <div class="footer-links">
+                <span>Secure & Fast</span>
+                <span>•</span>
+                <span>SQLite DB</span>
+                <span>•</span>
+                <a href="{% url 'home' %}">Dashboard</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Script -->
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

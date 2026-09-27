@@ -1,0 +1,96 @@
+{% extends 'notes/base.html' %}
+{% load static %}
+
+{% block title %}Edit: {{ note.title }} | NotesFlow{% endblock %}
+
+{% block content %}
+<div class="form-page-container">
+    <div class="form-card">
+        <div class="form-header">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+                <h1 class="form-title">
+                    <span>✏️</span>
+                    <span>Edit Note</span>
+                </h1>
+                <span class="category-badge {{ note.category|lower }}">
+                    Current: {{ note.category }}
+                </span>
+            </div>
+            <p class="form-subtitle">Update your note content, category, or favorite status.</p>
+        </div>
+
+        <form method="POST" action="{% url 'edit_note' note.id %}" novalidate>
+            {% csrf_token %}
+
+            <!-- Title Field -->
+            <div class="form-group">
+                <label for="title" class="form-label">
+                    <span>Note Title <span style="color: var(--danger);">*</span></span>
+                    <span class="form-counter">Max 200 chars</span>
+                </label>
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    class="form-input"
+                    value="{% if form_title is not None %}{{ form_title }}{% else %}{{ note.title }}{% endif %}"
+                    maxlength="200"
+                    required
+                >
+            </div>
+
+            <!-- Category Field -->
+            <div class="form-group">
+                <label for="category" class="form-label">Category</label>
+                <select id="category" name="category" class="form-select">
+                    {% for cat in category_choices %}
+                    <option value="{{ cat }}" {% if form_category %}{% if form_category == cat %}selected{% endif %}{% else %}{% if note.category == cat %}selected{% endif %}{% endif %}>
+                        {{ cat }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Content Field with Live Word & Char Count -->
+            <div class="form-group">
+                <label for="note-content-input" class="form-label">
+                    <span>Note Content <span style="color: var(--danger);">*</span></span>
+                    <span class="form-counter">
+                        <span id="word-count-badge">0 words</span> • <span id="char-count-badge">0 characters</span>
+                    </span>
+                </label>
+                <textarea
+                    id="note-content-input"
+                    name="content"
+                    class="form-textarea"
+                    required
+                >{% if form_content is not None %}{{ form_content }}{% else %}{{ note.content }}{% endif %}</textarea>
+            </div>
+
+            <!-- Favorite Toggle Checkbox -->
+            <div class="form-group">
+                <label class="form-checkbox-label">
+                    <input
+                        type="checkbox"
+                        name="is_favorite"
+                        class="form-checkbox"
+                        {% if form_is_favorite is not None %}{% if form_is_favorite %}checked{% endif %}{% else %}{% if note.is_favorite %}checked{% endif %}{% endif %}
+                    >
+                    <span>⭐ Mark this note as a Favorite</span>
+                </label>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <a href="{% url 'home' %}" class="btn btn-secondary">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <span>💾</span>
+                    <span>Update Note</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
